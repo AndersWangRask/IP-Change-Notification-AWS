@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28516.95
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPChange.Core", "src\IPChange.Core\IPChange.Core.csproj", "{5DA21D54-94C4-4F09-933A-6FC56A7AA897}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPChange.Cmd", "src\IPChange.Cmd\IPChange.Cmd.csproj", "{A981B651-8510-46F0-B266-5F469949BCC4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5DA21D54-94C4-4F09-933A-6FC56A7AA897}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DA21D54-94C4-4F09-933A-6FC56A7AA897}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DA21D54-94C4-4F09-933A-6FC56A7AA897}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DA21D54-94C4-4F09-933A-6FC56A7AA897}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A981B651-8510-46F0-B266-5F469949BCC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A981B651-8510-46F0-B266-5F469949BCC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A981B651-8510-46F0-B266-5F469949BCC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A981B651-8510-46F0-B266-5F469949BCC4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E095E99-DAEA-4C7E-B93C-A84F25F552FA}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ClientToAWS-config>
+  <BaseSettings>
+    <AWSAccessKeyID></AWSAccessKeyID>
+    <AWSSecretAccessKey></AWSSecretAccessKey>
+    <AWSRegion></AWSRegion>
+  </BaseSettings>
+  <multiClientState>
+    <clientName></clientName>
+    <Route53>
+      <R53ZoneId></R53ZoneId>
+      <name></name>
+      <useEncryption></useEncryption>
+      <encryptionPassword></encryptionPassword>
+    </Route53>
+  </multiClientState>
+  <Route53>
+    <host>
+      <R53ZoneId></R53ZoneId>
+      <name ttl="60"></name>
+    </host>
+  </Route53>
+  <EC2SecurityGroup>
+    <entry>
+      <!-- RDP -->
+      <groupId></groupId>
+      <portRange>3389</portRange>
+    </entry>
+    <entry>
+      <!-- MS SQL -->
+      <groupId></groupId>
+      <portRange>1433</portRange>
+    </entry>
+    <entry>
+      <!-- PowerShell -->
+      <groupId></groupId>
+      <portRange>5985-5986</portRange>
+    </entry>
+  </EC2SecurityGroup>
+  <Notification>
+    <emailConfig>
+      <smtpServer>smtp.gmail.com</smtpServer>
+      <smtpServerPort>587</smtpServerPort>
+      <username></username>
+      <password></password>
+      <domain></domain>
+      <fromEmail></fromEmail>
+      <subjectPrefix></subjectPrefix>
+      <optionalMessage></optionalMessage>
+    </emailConfig>
+    <recipients>
+      <email type="summary">123@email.com</email>
+      <email type="full">456@email.com</email>
+      <email type="full" display="Mr John Doe">jd@email.com</email>
+    </recipients>
+  </Notification>
+</ClientToAWS-config>
