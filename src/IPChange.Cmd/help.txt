@@ -1,0 +1,18 @@
+﻿IP Change Notification AWS HELP:
+
+MCS = Multi-Client State (it's a list of all machine names that are updating and their IP addresses)
+
+-help
+Outputs this Help File
+
+-workfile:"path to XML workfile"
+The workfile contains the configuration and what actions to take when an IP change is noticed
+
+-logfile:"path to XML logile" 
+Contains the current IP and logs as IP changes.
+
+-display:mcs
+Displays a list of clients registered in the "Multi Client State".
+Requires a workfile set
+
+-mcsdelete:[all/name/expire] -value:[name/expirationdate]

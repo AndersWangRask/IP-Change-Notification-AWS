@@ -172,8 +172,7 @@ namespace IPChange.Core
             if (Config.MultiClientSettings != null)
             {
                 multiClientState = new MultiClientState(Config, IpState, Output);
-
-                multiClientState.RunMe();
+                multiClientState.Run();
             }
 
             //Run Route 53 updates
@@ -194,9 +193,6 @@ namespace IPChange.Core
                 }
             }
 
-            //Finish Multi-Client State
-            multiClientState?.SaveClients();
-
             //OUTPUT
             Output($"IP CHANGE: COMPLETE: IP State: {IpState}");
 
@@ -209,10 +205,14 @@ namespace IPChange.Core
                 }
             }
 
+            //Dispose of MultiClientState
+            multiClientState?.Dispose();
+            multiClientState = null;
+
             //OUTPUT **FIN**
             Output($"IP CHANGE: Notifications complete. ALL DONE :-)! IP State: {IpState}");
         }
 
-        public override string ToString() => $"AWS IP Change Worker: {IpState}";
+        public override string ToString() => $"IP Change Worker: {IpState}";
     }
 }

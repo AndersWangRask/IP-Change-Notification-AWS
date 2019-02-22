@@ -69,7 +69,9 @@ namespace IPChange.Core
                     MultiClientState?
                         .Clients?
                         .Where(mcei => mcei.IP == IpState.OldIP)
-                        .Any() ?? false;
+                        .Any()
+                    ??
+                    false;
 
                 if (!oldIpStillInUse)
                 {
@@ -82,7 +84,7 @@ namespace IPChange.Core
                                 {
                                     new IpPermission
                                     {
-                                        IpProtocol = "tcp",  //TODO: EC2S Make IpProtocol configurable
+                                        IpProtocol = item.IpProtocol,
                                         FromPort = item.PortRange.FromPort,
                                         ToPort = item.PortRange.ToPort,
                                         Ipv4Ranges =

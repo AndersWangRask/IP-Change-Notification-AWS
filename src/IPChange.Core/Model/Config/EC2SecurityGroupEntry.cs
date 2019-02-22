@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace IPChange.Core.Model.Config
 {
@@ -9,6 +10,9 @@ namespace IPChange.Core.Model.Config
     /// </summary>
     public class EC2SecurityGroupEntry
     {
+        public static IEnumerable<string> AllowedIpProtocols { get; } =
+            (new List<string>() { "tcp", "udp", "icmp" }).AsReadOnly();
+
         /// <summary>
         /// The ID of the EC2 Security Group to update
         /// </summary>
@@ -44,7 +48,7 @@ namespace IPChange.Core.Model.Config
         {
             get
             {
-                if (_portRange ==  null)
+                if (_portRange == null)
                 {
                     _portRange = new PortRange(PortRangeString);
                 }
@@ -59,6 +63,29 @@ namespace IPChange.Core.Model.Config
         }
         private PortRange _portRange;
 
-        public override string ToString() => $"GroupId: {GroupId}, PortRange: {PortRange}";
+        public string IpProtocol
+        {
+            get => _ipProtocol;
+            set
+            {
+                if (string.IsNullOrWhiteSpace(value)
+                    ||
+                    !AllowedIpProtocols.Contains(value, StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new ApplicationException(
+                        $"\"{value}\" is not an allowed value for IP Protocol. " +
+                        $"Allowed values are \"{string.Join(", ", AllowedIpProtocols)}\"");
+                }
+
+                _ipProtocol = value;
+            }
+        }
+        private string _ipProtocol = "tcp";
+
+        public string Description { get; set; }
+
+        public override string ToString() => 
+            $"GroupId: {GroupId}, PortRange: {PortRange}, IP Protocol: {IpProtocol}" +
+            (string.IsNullOrWhiteSpace(Description) ? "" : ", Description: " + Description);
     }
 }

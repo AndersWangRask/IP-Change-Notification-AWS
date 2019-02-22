@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IPChange.Cmd": {
+      "commandName": "Project",
+      "commandLineArgs": "-forceupdate:true"
+    }
+  }
+}

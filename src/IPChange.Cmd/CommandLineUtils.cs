@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace IPChange.Cmd
         /// <summary>
         /// Parses Command Line parameters according only to a certain specific pattern (see remarks)
         /// </summary>
-        /// <param name="CommandLineArgs">The "raw" command line arguments, e.g. as from My.Application.CommandLineArgs</param>
+        /// <param name="CommandLineArgs">The "raw" command line arguments, e.g. as passed in to Main</param>
         /// <param name="StringToObject">A function that converts the string to an object (e.g. converts string "True" to Boolean True, or whatever)</param>
         /// <param name="DefaultObjectValue">The default value where a key does not have a value. This default to Boolean True</param>
         /// <returns>
@@ -25,8 +26,9 @@ namespace IPChange.Cmd
         /// </remarks>
         public static Dictionary<string, object> GetCommandLineArgs(
             IEnumerable<string> CommandLineArgs,
-            Func<string, string, object, object> StringToObject = null,
-            object DefaultObjectValue = null)
+            Func<string, string, object, IDictionary<string, object>, object> StringToObject = null,
+            object DefaultObjectValue = null,
+            dynamic DefaultValues = null)
         {
             //Set default values
             if (DefaultObjectValue == null)
@@ -36,6 +38,21 @@ namespace IPChange.Cmd
 
             //new the return value
             Dictionary<string, object> commandLineArgsDictionary = new Dictionary<string, object>(StringComparer.InvariantCultureIgnoreCase);
+
+            //Get the Props of the Default Values (if any)
+            Dictionary<string, object> dicDefaultValues = null;
+
+            if (DefaultValues != null)
+            {
+                PropertyInfo[] pis = DefaultValues.GetType().GetProperties();
+
+                dicDefaultValues =
+                    pis
+                        .ToDictionary(
+                            pri => pri.Name, 
+                            pri => pri.GetValue(DefaultValues), 
+                            StringComparer.OrdinalIgnoreCase);
+            }
 
             //Process and Add Command Line Args to the Return Value
             foreach (string arg in CommandLineArgs)
@@ -55,17 +72,34 @@ namespace IPChange.Cmd
                         {
                             // If there is a StringToObject function that has been passed in
                             // (that function has the responsibility for returning the appropriate value)
-                            argVal = StringToObject(vals[0], vals[1], DefaultObjectValue);
+                            argVal = StringToObject(vals[0], vals[1], DefaultObjectValue, dicDefaultValues);
+                        }
+                        else if (DefaultValues != null && dicDefaultValues.ContainsKey(argKey))
+                        {
+                            //If no StringToObject function we try to convert the string to the default value type
+                            argVal = Convert.ChangeType(vals[1], dicDefaultValues[argKey].GetType());
                         }
                         else
                         {
-                            // If no StringToObject function we just set the value as the string it originally was
+                            //If no StringToObject function we just set the value as the string it originally was
                             argVal = vals[1];
                         }
                     }
 
                     // Add the Key, Value to the return value Dictionary
                     commandLineArgsDictionary.Add(argKey, argVal);
+                }
+            }
+
+            //Consider Default Values
+            if (DefaultValues != null)
+            {
+                foreach (string argName in dicDefaultValues.Keys)
+                {
+                    if (!commandLineArgsDictionary.ContainsKey(argName))
+                    {
+                        commandLineArgsDictionary.Add(argName, dicDefaultValues[argName]);
+                    }
                 }
             }
 

@@ -15,37 +15,33 @@ namespace IPChange.Core
     {
         public Config Config { get; protected set; }
         public IpState IpState { get; protected set; }
-        protected Action<string> Output { get; private set;  }
+        protected Action<string> Output { get; private set; }
         protected MultiClientState MultiClientState { get; private set; }
 
         protected readonly List<(DateTime time, string outputText)> _outputLog =
             new List<(DateTime time, string outputText)>();
 
-        public BaseAwsWorker(Config config, IpState ipState, Action<string> output, MultiClientState multiClientState)
+        public BaseAwsWorker(
+            Config config,
+            IpState ipState,
+            Action<string> output,
+            MultiClientState multiClientState)
         {
             Config = config;
             IpState = ipState;
             MultiClientState = multiClientState;
 
-            if (output != null)
-            {
-                Output =
-                    (msg) =>
-                    {
-                        output(msg);
-                        _outputLog.Add((DateTime.Now, msg));
-                    };
-            }
-            else
-            {
-                //Ensure that there is an output function
-                Output =
-                    (msg) =>
-                    {
-                        Debug.WriteLine(msg);
-                        _outputLog.Add((DateTime.Now, msg));
-                    };
-            }
+            output =
+                output
+                ??
+                ((msg) => Debug.WriteLine(msg));
+
+            Output =
+                (msg) =>
+                {
+                    output(msg);
+                    _outputLog.Add((DateTime.Now, msg));
+                };
         }
 
         public RegionEndpoint RegionEndpoint

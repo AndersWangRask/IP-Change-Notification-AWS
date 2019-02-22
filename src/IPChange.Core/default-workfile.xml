@@ -23,13 +23,17 @@
   <EC2SecurityGroup>
     <entry>
       <!-- RDP -->
+      <!-- THE GROUP ID of the Security Group -->
       <groupId></groupId>
       <portRange>3389</portRange>
+      <ipProtocol>tcp</ipProtocol>
+      <description>Remote Desktop Protocol optional description</description> 
     </entry>
     <entry>
       <!-- MS SQL -->
       <groupId></groupId>
       <portRange>1433</portRange>
+      <ipProtocol>tcp,icmp,udp</ipProtocol>
     </entry>
     <entry>
       <!-- PowerShell -->

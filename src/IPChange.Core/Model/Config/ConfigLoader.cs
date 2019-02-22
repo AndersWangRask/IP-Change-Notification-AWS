@@ -103,7 +103,15 @@ namespace IPChange.Core.Model.Config
                 //EC2SecurityGroup
                 EC2SecurityGroupEntries =
                     rootXml.Element("EC2SecurityGroup")?.Elements("entry")
-                        .Select(xi => new EC2SecurityGroupEntry { GroupId = xi.Element("groupId").Value, PortRangeString = xi.Element("portRange").Value })
+                        .Select(
+                            xi =>
+                                new EC2SecurityGroupEntry
+                                {
+                                    GroupId = xi.Element("groupId").Value,
+                                    PortRangeString = xi.Element("portRange").Value,
+                                    IpProtocol = xi.Element("ipProtocol")?.Value ?? "tcp",
+                                    Description = xi.Element("Description")?.Value
+                                })
                         .ToList(),
 
                 //Notification

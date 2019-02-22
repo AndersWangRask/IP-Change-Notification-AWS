@@ -32,7 +32,10 @@ namespace IPChange.Core
                 new AmazonRoute53Client(
                     Config.BaseSettings.AWSAccessKeyID,
                     Config.BaseSettings.AWSSecretAccessKey,
-                    new AmazonRoute53Config { RegionEndpoint = RegionEndpoint });
+                    new AmazonRoute53Config
+                    {
+                        RegionEndpoint = RegionEndpoint
+                    });
 
             //Define the request
             ListResourceRecordSetsRequest listResourceRecordSetsRequest =
@@ -67,7 +70,7 @@ namespace IPChange.Core
                 //We just return an empty list
 
                 //Output
-                Output($"MCS: Found no existing clients");
+                Output($"MCS: Found no existing record");
 
                 //return
                 return new List<MultiClientEntry>();
@@ -87,7 +90,7 @@ namespace IPChange.Core
             dataText = dataText.Decrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
 
             //3) De-serialize the JSON to the return value
-            List<MultiClientEntry> multiClientEntries = 
+            List<MultiClientEntry> multiClientEntries =
                 JsonConvert.DeserializeObject<List<MultiClientEntry>>(dataText);
 
             //Output
@@ -102,27 +105,31 @@ namespace IPChange.Core
             //Output
             Output($"MCS: Starting Save Clients");
 
+            string dataText = "";
+
             //Validate
             if (Clients == null || !Clients.Any())
             {
-                //TODO: Allow for updating nothing (i.e. if it has been removed that obv needs updating)
-
                 //Output
-                Output($"MCS: Found no Clients. No update was made.");
+                Output($"MCS: Had no Clients.");
 
-                //return
-                return;
+                //Will update with an empty string - no clients
             }
+            else
+            {
+                //Output
+                Output($"MCS: Found {Clients.Count} Clients.");
 
-            //1) Serialize to JSON text
-            string dataText = JsonConvert.SerializeObject(Clients);
+                //1) Serialize to JSON text
+                dataText = JsonConvert.SerializeObject(Clients);
 
-            //2) Prepare the string (encrypt, compress)
-            //Encrypt
-            dataText = dataText.Encrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
+                //2) Prepare the string (encrypt, compress)
+                //Encrypt
+                dataText = dataText.Encrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
 
-            //Compress
-            dataText = dataText.Compress();
+                //Compress
+                dataText = dataText.Compress();
+            }
 
             //Add quotation marks
             dataText = "\"" + dataText + "\"";
@@ -133,7 +140,10 @@ namespace IPChange.Core
                 new AmazonRoute53Client(
                     Config.BaseSettings.AWSAccessKeyID,
                     Config.BaseSettings.AWSSecretAccessKey,
-                    new AmazonRoute53Config { RegionEndpoint = RegionEndpoint });
+                    new AmazonRoute53Config
+                    {
+                        RegionEndpoint = RegionEndpoint
+                    });
 
             //New the Change Record to push
             Change change =
@@ -159,7 +169,7 @@ namespace IPChange.Core
                 };
 
             //Submitting the Change Request to the API and receiving back the ID
-            ChangeResourceRecordSetsResponse recordSetResponse = 
+            ChangeResourceRecordSetsResponse recordSetResponse =
                 r53Client
                     .ChangeResourceRecordSetsAsync(recordSetsRequest)
                     .GetAwaiter()
@@ -189,7 +199,7 @@ namespace IPChange.Core
 
             //Output DONE
             Output($"MCS-R53: Change ID \"{changeId}\": Change IN SYNC. Done.");
-            Output($"MCS: Completed Save Clients");
+            Output($"MCS: Completed Save of {Clients.Count} Clients");
         }
 
         public List<MultiClientEntry> Clients
@@ -206,7 +216,7 @@ namespace IPChange.Core
         }
         private List<MultiClientEntry> _clients = null;
 
-        public void RunMe()
+        public void Run()
         {
             MultiClientEntry item =
                 Clients
@@ -230,6 +240,10 @@ namespace IPChange.Core
             }
 
             item.IP = IpState.NewIP;
+            item.UpdatedOnUTC = DateTime.Now.ToUniversalTime();
+
+            //Save Clients
+            SaveClients();
         }
     }
 }
