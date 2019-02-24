@@ -16,4 +16,4 @@ Using this util can be helpful for e.g. Remote Workers who manage or otherwise a
 
 I have adapted this util from an old script we used for a Remote Team I was part of.
 
-I have tried to make the architecture soft-of-like plugin based and it would be possible to develop additional plugins e.g. targeting non-AWS.
+I have tried to make the architecture sort-of-like plugin based and it would be possible to develop additional plugins e.g. targeting non-AWS.
