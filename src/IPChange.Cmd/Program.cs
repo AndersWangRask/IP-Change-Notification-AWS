@@ -7,6 +7,8 @@ using IPChange.Core;
 using IPChange.Core.Model;
 using static IPChange.Cmd.CommandLineUtilFunctions;
 using IPChange.Core.Model.Config;
+using IPChange.Core.Helpers;
+using System.Linq;
 
 namespace IPChange.Cmd
 {
@@ -81,12 +83,7 @@ namespace IPChange.Cmd
 
         private static string getWorkFilePath(Dictionary<string, object> dicArgs)
         {
-            string workFile =
-                dicArgs.ContainsKey("workfile")
-                ?
-                (string)dicArgs["workfile"]
-                :
-                "default-workfile.xml";
+            string workFile = dicArgs.Get<string>("workfile", "default-workfile.xml");
 
             //Find the Work file
             if (!Path.IsPathRooted(workFile))
@@ -105,12 +102,7 @@ namespace IPChange.Cmd
 
         private static string getLogFilePath(Dictionary<string, object> dicArgs)
         {
-            string logFile =
-                dicArgs.ContainsKey("logfile")
-                ?
-                (string)dicArgs["logfile"]
-                :
-                "default-iplog.xml";
+            string logFile = dicArgs.Get<string>("logfile", "default-iplog.xml");
 
             //Find the Log File
             if (!Path.IsPathRooted(logFile))
@@ -154,18 +146,24 @@ namespace IPChange.Cmd
                         {
                             ForceUpdate = false,
                             Help = false,
-                            Display = ""
+                            Display = "",
+                            McsDelete = ""
                         });
 
             //Display Help
-            if ((bool)dicArgs["help"])
+            if (dicArgs.Get<bool>("help"))
             {
                 DisplayHelp(args, dicArgs);
             }
             //Display Something Command
-            else if (!string.IsNullOrWhiteSpace((string)dicArgs["display"]))
+            else if (!string.IsNullOrWhiteSpace(dicArgs.Get<string>("display")))
             {
-                DisplayCommand((string)dicArgs["display"], args, dicArgs);
+                DisplayCommand(dicArgs.Get<string>("display"), args, dicArgs);
+            }
+            //Multi Client State (MCS) Delete Records
+            else if (!string.IsNullOrWhiteSpace(dicArgs.Get<string>("mcsdelete")))
+            {
+                McsDelete(args, dicArgs);
             }
             //Do Main Work (Look for IP Change)
             else
@@ -275,6 +273,65 @@ namespace IPChange.Cmd
         static void DisplayUnknown(string displayCommand)
         {
             Console.WriteLine($"Unknown Display Command: \"{displayCommand}\"");
+        }
+
+        static void McsDelete(string[] args, Dictionary<string, object> dicArgs)
+        {
+            //Load Config from Work File
+            Config config = getConfig(dicArgs);
+
+            //Set Output 
+            Output = Output_Simple;
+
+            string maintenanceMode = (string)dicArgs["mcsdelete"];
+
+            IEnumerable<MultiClientEntry> deletedEntries;
+
+            using (MultiClientState mcs = new MultiClientState(config, null, null))
+            {
+                switch (maintenanceMode)
+                {
+                    case "all":
+                        deletedEntries = mcs.DeleteAll();
+                        break;
+
+                    case "name":
+                        string name = dicArgs.Get<string>("value");
+                        deletedEntries = mcs.DeleteByName(name);
+                        break;
+
+                    case "expire":
+                        DateTime expiry = dicArgs.Get<DateTime>("value");
+                        deletedEntries = mcs.DeleteOlderThan(expiry);
+                        break;
+
+                    default:
+                        Output($"MCS Maintenance mode \"{maintenanceMode}\" is not valid.");
+                        return;
+                }
+
+                //Save changes
+                mcs.SaveClients();
+            }
+
+            //Output
+            if (deletedEntries != null && deletedEntries.Any())
+            {
+                Output("Deleted these Multi-Client-State Entries:");
+
+                foreach (MultiClientEntry entry in deletedEntries)
+                {
+                    Output(entry.ToString());
+                }
+
+                Output("Done!");
+            }
+            else
+            {
+                Output("There was no Multi-Client-State Entries to delete.");
+            }
+            
+            Output("");
         }
     }
 }

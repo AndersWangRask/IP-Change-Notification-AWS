@@ -62,9 +62,10 @@ namespace IPChange.Core
                     .FirstOrDefault()?
                     .ResourceRecords?
                     .FirstOrDefault()?
-                    .Value;
+                    .Value?
+                    .Trim('"');
 
-            if (string.IsNullOrWhiteSpace(dataText))
+            if (string.IsNullOrWhiteSpace(dataText) || string.IsNullOrWhiteSpace(dataText.Trim('"')))
             {
                 //Since there somehow were no existing data in R53
                 //We just return an empty list
@@ -77,19 +78,11 @@ namespace IPChange.Core
             }
 
             //2) Decode the data string to a JSON string (decompress, decrypt)
-            //Remove any "
-            if (dataText.StartsWith("\"") && dataText.EndsWith("\""))
-            {
-                dataText = dataText.Substring(1, dataText.Length - 2);
-            }
+            //Decrypt and Decompress
+            dataText = dataText.DecryptThenDecompress(Config.MultiClientSettings.Route53.EncryptionPassword);
 
-            //Decompress
-            dataText = dataText.Decompress();
-
-            //Decrypt
-            dataText = dataText.Decrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
-
-            //3) De-serialize the JSON to the return value
+            //3) Turn the Data Text into List
+            //De-serialize the JSON to the return value
             List<MultiClientEntry> multiClientEntries =
                 JsonConvert.DeserializeObject<List<MultiClientEntry>>(dataText);
 
@@ -124,11 +117,8 @@ namespace IPChange.Core
                 dataText = JsonConvert.SerializeObject(Clients);
 
                 //2) Prepare the string (encrypt, compress)
-                //Encrypt
-                dataText = dataText.Encrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
-
-                //Compress
-                dataText = dataText.Compress();
+                //Encrypt and Compress
+                dataText = dataText.CompressThenEncrypt(Config.MultiClientSettings.Route53.EncryptionPassword);
             }
 
             //Add quotation marks
@@ -220,9 +210,15 @@ namespace IPChange.Core
         {
             MultiClientEntry item =
                 Clients
-                    .Where(mcei => string.Equals(Config.MultiClientSettings.ClientName, mcei.Name, StringComparison.InvariantCultureIgnoreCase))
+                    .Where(
+                        mcei =>
+                            string.Equals(
+                                Config.MultiClientSettings.ClientName,
+                                mcei.Name,
+                                StringComparison.InvariantCultureIgnoreCase))
                     .FirstOrDefault();
 
+            //If no existing entry, we need to create a new one
             if (item == null)
             {
                 item = new MultiClientEntry();
@@ -233,17 +229,65 @@ namespace IPChange.Core
                 //Output
                 Output($"MCS: Created new Multi Client Entry: {item}");
             }
+            //Otherwise, we found it, and Display it
             else
             {
                 //Output
                 Output($"MCS: Found existing Multi Client Entry: {item}");
             }
 
+            //Update Entry Values
             item.IP = IpState.NewIP;
             item.UpdatedOnUTC = DateTime.Now.ToUniversalTime();
 
             //Save Clients
             SaveClients();
+        }
+
+        public IEnumerable<MultiClientEntry> DeleteOlderThan(DateTime olderThan, bool trialRun = false)
+        {
+            List<MultiClientEntry> clientsInScope =
+                Clients
+                    .Where(mcei => mcei.UpdatedOnUTC < olderThan)
+                    .ToList();
+
+            if (!trialRun)
+            {
+                clientsInScope
+                    .ForEach(mcei => Clients.Remove(mcei));
+            }
+
+            return clientsInScope.AsReadOnly();
+        }
+
+        public IEnumerable<MultiClientEntry> DeleteByName(string name, bool trialRun = false)
+        {
+            List<MultiClientEntry> clientsInScope =
+                Clients
+                    .Where(mcei => string.Equals(name, mcei.Name, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            if (!trialRun)
+            {
+                clientsInScope
+                    .ForEach(mcei => Clients.Remove(mcei));
+            }
+
+            return clientsInScope.AsReadOnly();
+        }
+
+        public IEnumerable<MultiClientEntry> DeleteAll(bool trialRun = false)
+        {
+            List<MultiClientEntry> clientsInScope =
+                Clients
+                    .ToList();
+
+            if (!trialRun)
+            {
+                Clients.Clear();
+            }
+
+            return clientsInScope.AsReadOnly();
         }
     }
 }

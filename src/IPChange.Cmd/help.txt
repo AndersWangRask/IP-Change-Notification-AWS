@@ -3,7 +3,7 @@
 MCS = Multi-Client State (it's a list of all machine names that are updating and their IP addresses)
 
 -help
-Outputs this Help File
+Outputs this Help File (and stops all other commands)
 
 -workfile:"path to XML workfile"
 The workfile contains the configuration and what actions to take when an IP change is noticed

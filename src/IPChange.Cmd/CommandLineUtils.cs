@@ -15,6 +15,9 @@ namespace IPChange.Cmd
         /// <param name="CommandLineArgs">The "raw" command line arguments, e.g. as passed in to Main</param>
         /// <param name="StringToObject">A function that converts the string to an object (e.g. converts string "True" to Boolean True, or whatever)</param>
         /// <param name="DefaultObjectValue">The default value where a key does not have a value. This default to Boolean True</param>
+        /// <param name="DefaultValues">
+        /// Default Values in the form of a dynamic that will be filled in even if they are not in the actual args
+        /// </param>
         /// <returns>
         /// A Dictionary of Key and Object Value
         /// </returns>
@@ -49,8 +52,8 @@ namespace IPChange.Cmd
                 dicDefaultValues =
                     pis
                         .ToDictionary(
-                            pri => pri.Name, 
-                            pri => pri.GetValue(DefaultValues), 
+                            pri => pri.Name,
+                            pri => pri.GetValue(DefaultValues),
                             StringComparer.OrdinalIgnoreCase);
             }
 
@@ -105,6 +108,45 @@ namespace IPChange.Cmd
 
             // Return
             return commandLineArgsDictionary;
+        }
+
+        /// <summary>
+        /// Returns whether the dictionary contains the key and the value is of type T
+        /// </summary>
+        /// <typeparam name="T">The type to evaluate for</typeparam>
+        /// <param name="dic">The dictionary being extended</param>
+        /// <param name="key">The key to look for</param>
+        /// <returns>
+        /// Boolean indicating whether we can get the key value as T
+        /// </returns>
+        public static bool CanGet<T>(this Dictionary<string, object> dic, string key)
+        {
+            return
+                dic.ContainsKey(key)
+                ?
+                dic[key] is T
+                :
+                false;
+        }
+
+        /// <summary>
+        /// Gets a value from the dictionary as Type T.
+        /// If key does not exist the default value for T is returned.
+        /// </summary>
+        /// <typeparam name="T">The return value type</typeparam>
+        /// <param name="dic">The dictionary being extended</param>
+        /// <param name="key">The key to look for</param>
+        /// <returns>
+        /// The dictionary value as Type T
+        /// </returns>
+        public static T Get<T>(this Dictionary<string, object> dic, string key, T defaultValue = default)
+        {
+            if (!dic.ContainsKey(key))
+            {
+                return defaultValue;
+            }
+
+            return (T)Convert.ChangeType(dic[key], typeof(T));
         }
     }
 }

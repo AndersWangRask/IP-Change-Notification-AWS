@@ -78,5 +78,39 @@ namespace IPChange.Core.Helpers
         /// Please understand the security limitations of symmetrical encryption with a known clear-text password.
         /// </remarks>
         public static string Decrypt(this string encryptedString, string password) => AESGCM.SimpleDecryptWithPassword(encryptedString, password);
+
+        public static string CompressThenEncrypt(this string uncompressedString, string password)
+        {
+            using (MemoryStream compressedStream = new MemoryStream())
+            {
+                using (MemoryStream uncompressedStream = new MemoryStream(Encoding.UTF8.GetBytes(uncompressedString)))
+                {
+                    using (DeflateStream compressorStream = new DeflateStream(compressedStream, CompressionMode.Compress, true))
+                    {
+                        uncompressedStream.CopyTo(compressorStream);
+                    }
+
+                    byte[] encryptedBytes = AESGCM.SimpleEncryptWithPassword(compressedStream.ToArray(), password);
+
+                    return Convert.ToBase64String(encryptedBytes);
+                }
+            }
+        }
+
+        public static string DecryptThenDecompress(this string inputString, string password)
+        {
+            using (MemoryStream decompressedStream = new MemoryStream())
+            {
+                using (MemoryStream compressedStream = new MemoryStream(AESGCM.SimpleDecryptWithPassword(Convert.FromBase64String(inputString), password)))
+                {
+                    using (DeflateStream decompressorStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
+                    {
+                        decompressorStream.CopyTo(decompressedStream);
+                    }
+
+                    return Encoding.UTF8.GetString(decompressedStream.ToArray());
+                }
+            }
+        }
     }
 }
