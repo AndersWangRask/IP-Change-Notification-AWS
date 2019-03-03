@@ -6,13 +6,21 @@ MCS = Multi-Client State (it's a list of all machine names that are updating and
 Outputs this Help File (and stops all other commands)
 
 -workfile:"path to XML workfile"
-The workfile contains the configuration and what actions to take when an IP change is noticed
+The workfile contains the configuration and what actions to take when an IP change is noticed.
+If the workfile param is omitted it will look for "default-workfile.xml" in the root folder.
 
 -logfile:"path to XML logile" 
-Contains the current IP and logs as IP changes.
+The logfile contains the current IP and logs any IP changes.
+The logfile is required for the default IP Change action.
+If required but omitted it will look for "default-iplog.xml" in the app folder.
 
 -display:mcs
 Displays a list of clients registered in the "Multi Client State".
-Requires a workfile set
+Requires a workfile.
 
 -mcsdelete:[all/name/expire] -value:[name/expirationdate]
+Deletes Client Entries registered in the "Multi Client State", all or based on name or date.
+When using -mcsdelete supply the option of all, name or expire.
+When option name then add -value:name.
+When option expire then add -value:expirationdate
+Requires a workfile.
